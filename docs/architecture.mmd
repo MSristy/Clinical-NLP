@@ -1,47 +1,34 @@
 flowchart TB
-  S["I | Supplied protocols<br/>4 protocols; 45 assigned pages<br/>Cover = page 1<br/>Source ID / edition / page"]
-  E["I | Extract + visual review<br/>pypdf text; PDFium images<br/>Tables, footnotes, HTN p64<br/>Extraction is not clinical inference"]
-  C["I | Curate + validate 32 cards<br/>Canonical JSONL; source passages<br/>Prerequisites / exclusions / doses<br/>card_id + evidence_id + source_id"]
-  D["I | RAG storage + indexing<br/>cards.jsonl -&gt; BM25 JSON index<br/>Corpus SHA256; rebuild script<br/>No case answers in the index"]
-  P["I | Editable Streamlit input<br/>Symptoms, duration, age, history,<br/>medicines, allergies; optional details<br/>No disease name required"]
-  V["I | Preserve patient context<br/>Validation; known facts / unknowns<br/>Null != false != assessed none<br/>Limited derived facts + provenance"]
-  R["I | Retrieve patient-specific cards<br/>Positive source anchors + BM25<br/>Maximum 10; no padding; zero allowed<br/>Same retrieval policy in both modes"]
-  X["I | TESTED: Improved mode only<br/>applicability_preview before model<br/>Existing per-card check status<br/>Baseline omits only this preview"]
-  M["I | One configured model request<br/>Groq Qwen 3.8 27B selects card / F / Q IDs<br/>Clinical fields + sources; F facts / Q slots<br/>Full passages are kept in UI / saved records"]
-  K["I | Shared checks in BOTH modes<br/>Schema / retrieved IDs / fact + question refs<br/>Limited observed prerequisites + exclusions<br/>Unknowns -&gt; clarification / review, not clearance"]
-  A["I | Saved run / experiment evidence<br/>Patient, original cards, prompt + response<br/>Mode, timing; freeze hash for final batch<br/>Expected checklists: evaluation only"]
-  N["I | Canonical output renderer<br/>Copy source actions / medication fields<br/>Exact input facts explain selections"]
-  U["I | Recommendation interface<br/>Probable diagnoses / investigations<br/>Medication planning / advice<br/>Source title / version / PDF citations<br/>Patient context + missing-info questions"]
-  NER["F | NER from clinical text<br/>Entities + spans, negation, temporality,<br/>units and confidence; preserve raw text"]
-  NR["F | Doctor confirms NER suggestions<br/>Resolve ambiguity before patient merge<br/>Uncertain values remain unknown"]
-  DR["F | Doctor review + acceptance<br/>Accept / edit / reject each recommendation<br/>Link to run, card + source version"]
-  RX["F | Prescription draft assembly<br/>Accepted medicine items; verify all fields<br/>Doctor resolves gaps + signs before use"]
-  FB["F | Doctor feedback store<br/>run_id / card_id / source / version<br/>Decision, changes, reason + timestamp"]
-  G["F | Governed maintenance<br/>Review feedback; revalidate source/cards<br/>New corpus version + prospective tests<br/>No automatic truth labels or training"]
-  S --> E
-  E --> C
-  C --> D
-  P --> V
-  D --> R
-  V --> R
-  V --> M
-  R --> M
-  R --> X
-  X --> M
-  M --> K
-  K --> A
-  K --> N
-  N --> U
-  NER -.-> NR
-  NR -.-> V
-  U -.-> DR
-  DR -.-> RX
-  DR -.-> FB
-  FB -.-> G
-  G -.-> C
-  classDef implemented fill:#eef9f8,stroke:#167c80,color:#17324d;
-  class S,E,C,D,P,V,R,M,K,A,N,U implemented;
-  classDef improvement fill:#fff7e6,stroke:#bd7a10,color:#17324d;
-  class X improvement;
-  classDef future fill:#f7f2ff,stroke:#7955a0,color:#17324d;
-  class NER,NR,DR,RX,FB,G future;
+  subgraph PREP[Knowledge preparation — implemented]
+    P[Protocol PDFs] --> E[Extract + visual review]
+    E --> C[Canonical cards]
+    C --> DB[(BM25 index)]
+  end
+  subgraph RUN[Recommendation engine — implemented]
+    I[Patient facts] --> R[Retrieve cards]
+    R -->|Baseline| M[Qwen model]
+    R --> X[Applicability preview — Improved only]
+    X --> M
+    M --> K[Shared applicability + missing-info checks]
+    K --> O[Care plan + source citations]
+    K --> L[Saved run + evidence log]
+    R --> Z[Zero cards: no model call]
+  end
+  DB --> R
+  subgraph FUTURE[Future integrations — design only]
+    N[NER + clinician confirmation]
+    A[Doctor acceptance]
+    RX[Prescription draft + signature]
+    F[Feedback + governed review]
+  end
+  N -.-> I
+  O -.-> A
+  A -.-> RX
+  A -.-> F
+  F -.-> C
+  classDef implemented fill:#eef9f8,stroke:#087f8c,color:#18364d;
+  class P,E,C,DB,I,R,M,K,O,L,Z implemented;
+  classDef tested fill:#fff7e8,stroke:#b77913,color:#18364d;
+  class X tested;
+  classDef future fill:#fbf8ff,stroke:#8461b5,color:#18364d;
+  class N,A,RX,F future;

@@ -42,3 +42,7 @@ Current milestone: Q1 and Q2 implementation/experiment package completed for the
 - [ ] User visual approval, then GitHub publication and submission refresh for the redesigned interface. Prior approved submission and remote remain unchanged.
 
 - [x] User approved the redesigned interface for GitHub publication, including White/Black icon and corrected workflow spacing. Backend and historical experiment evidence remain unchanged.
+
+- [x] Minimal flat submission_assessment prepared: 31 files, no subfolders; required deliverables only, runnable flat imports/paths verified, 12 original outputs combined without changing values, no private keys.
+
+- [x] User approved the concise visual architecture for GitHub; repository SVG/PNG/Mermaid and renderer updated to match the flat submission diagram.

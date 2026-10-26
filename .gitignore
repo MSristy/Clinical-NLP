@@ -25,3 +25,4 @@ Thumbs.db
 # Local portal-ready snapshot and archive; built from explicit allowlisted files.
 /submission/
 /submission.zip
+/submission_assessment/

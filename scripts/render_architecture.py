@@ -1,142 +1,149 @@
-"""Render the same Q3 architecture as SVG, PNG and Mermaid; no model/API call."""
-from html import escape
 from pathlib import Path
-import json
-from PIL import Image, ImageDraw, ImageFont
+from html import escape
+from math import atan2,cos,sin
+from PIL import Image,ImageDraw,ImageFont
 
-ROOT = Path(__file__).resolve().parents[1]
-WIDTH, HEIGHT = 1760, 1580
-COLORS = {'implemented': ('#eef9f8', '#167c80'), 'improvement': ('#fff7e6', '#bd7a10'),
-          'future': ('#f7f2ff', '#7955a0')}
-# Explicit labels distinguish actual implementation from intended connections.
-NODES = [
- ('S', 60, 165, 275, 120, 'implemented', ['I | Supplied protocols', '4 protocols; 45 assigned pages', 'Cover = page 1', 'Source ID / edition / page']),
- ('E', 380, 165, 290, 120, 'implemented', ['I | Extract + visual review', 'pypdf text; PDFium images', 'Tables, footnotes, HTN p64', 'Extraction is not clinical inference']),
- ('C', 715, 165, 320, 120, 'implemented', ['I | Curate + validate 32 cards', 'Canonical JSONL; source passages', 'Prerequisites / exclusions / doses', 'card_id + evidence_id + source_id']),
- ('D', 1080, 165, 345, 120, 'implemented', ['I | RAG storage + indexing', 'cards.jsonl -> BM25 JSON index', 'Corpus SHA256; rebuild script', 'No case answers in the index']),
- ('P', 60, 505, 440, 105, 'implemented', ['I | Editable Streamlit input', 'Symptoms, duration, age, history,', 'medicines, allergies; optional details', 'No disease name required']),
- ('V', 60, 655, 440, 105, 'implemented', ['I | Preserve patient context', 'Validation; known facts / unknowns', 'Null != false != assessed none', 'Limited derived facts + provenance']),
- ('R', 590, 505, 460, 105, 'implemented', ['I | Retrieve patient-specific cards', 'Positive source anchors + BM25', 'Maximum 10; no padding; zero allowed', 'Same retrieval policy in both modes']),
- ('X', 590, 705, 460, 110, 'improvement', ['I | TESTED: Improved mode only', 'applicability_preview before model', 'Existing per-card check status', 'Baseline omits only this preview']),
- ('M', 1110, 705, 560, 125, 'implemented', ['I | One configured model request', 'Groq Qwen 3.8 27B selects card / F / Q IDs', 'Clinical fields + sources; F facts / Q slots', 'Full passages are kept in UI / saved records']),
- ('K', 1110, 880, 560, 115, 'implemented', ['I | Shared checks in BOTH modes', 'Schema / retrieved IDs / fact + question refs', 'Limited observed prerequisites + exclusions', 'Unknowns -> clarification / review, not clearance']),
- ('A', 590, 880, 460, 115, 'implemented', ['I | Saved run / experiment evidence', 'Patient, original cards, prompt + response', 'Mode, timing; freeze hash for final batch', 'Expected checklists: evaluation only']),
- ('N', 1110, 1025, 560, 80, 'implemented', ['I | Canonical output renderer', 'Copy source actions / medication fields', 'Exact input facts explain selections']),
- ('U', 1110, 1145, 560, 145, 'implemented', ['I | Recommendation interface', 'Probable diagnoses / investigations', 'Medication planning / advice', 'Source title / version / PDF citations', 'Patient context + missing-info questions']),
- ('NER', 60, 845, 440, 100, 'future', ['F | NER from clinical text', 'Entities + spans, negation, temporality,', 'units and confidence; preserve raw text']),
- ('NR', 60, 985, 440, 80, 'future', ['F | Doctor confirms NER suggestions', 'Resolve ambiguity before patient merge', 'Uncertain values remain unknown']),
- ('DR', 60, 1210, 440, 90, 'future', ['F | Doctor review + acceptance', 'Accept / edit / reject each recommendation', 'Link to run, card + source version']),
- ('RX', 60, 1345, 440, 100, 'future', ['F | Prescription draft assembly', 'Accepted medicine items; verify all fields', 'Doctor resolves gaps + signs before use']),
- ('FB', 585, 1210, 430, 90, 'future', ['F | Doctor feedback store', 'run_id / card_id / source / version', 'Decision, changes, reason + timestamp']),
- ('G', 585, 1345, 430, 100, 'future', ['F | Governed maintenance', 'Review feedback; revalidate source/cards', 'New corpus version + prospective tests', 'No automatic truth labels or training']),
-]
-
-# Each edge is also exported to Mermaid. Solid = implemented, dashed = future.
-EDGES = [
- ('S','E',[(335,225),(380,225)],False,None),
- ('E','C',[(670,225),(715,225)],False,None),
- ('C','D',[(1035,225),(1080,225)],False,None),
- ('P','V',[(280,610),(280,655)],False,None),
- ('D','R',[(1252,285),(1252,430),(900,430),(900,505)],False,('indexed cards',1060,404)),
- ('V','R',[(500,707),(545,707),(545,558),(590,558)],False,('query',510,625)),
- ('V','M',[(500,682),(535,682),(535,655),(1390,655),(1390,705)],False,('same patient facts in BOTH modes',850,623)),
- ('R','M',[(1050,550),(1510,550),(1510,705)],False,('Baseline: patient + cards',1260,520)),
- ('R','X',[(820,610),(820,705)],False,('Improved path',830,671)),
- ('X','M',[(1050,760),(1110,760)],False,None),
- ('M','K',[(1390,830),(1390,880)],False,None),
- ('K','A',[(1110,938),(1050,938)],False,None),
- ('K','N',[(1390,995),(1390,1025)],False,None),
- ('N','U',[(1390,1105),(1390,1145)],False,None),
- ('NER','NR',[(280,945),(280,985)],True,None),
- ('NR','V',[(60,1025),(30,1025),(30,707),(60,707)],True,None),
- ('U','DR',[(1110,1217),(1070,1217),(1070,1135),(280,1135),(280,1210)],True,('clinician workflow (future)',595,1107)),
- ('DR','RX',[(280,1300),(280,1345)],True,('accepted items',292,1313)),
- ('DR','FB',[(500,1255),(585,1255)],True,None),
- ('FB','G',[(800,1300),(800,1345)],True,None),
- ('G','C',[(1015,1395),(1725,1395),(1725,153),(875,153),(875,165)],True,('reviewed source/card update - not automatic',1210,125)),
-]
-
-
-def main():
-    folder = ROOT/'docs'
-    folder.mkdir(exist_ok=True)
-    svg = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{WIDTH}" height="{HEIGHT}" viewBox="0 0 {WIDTH} {HEIGHT}" role="img" aria-labelledby="title desc">',
-           '<title id="title">Clinical NLP complete architecture: implemented and future components</title>',
-           '<desc id="desc">Protocol preparation and canonical-card BM25 retrieval feed one model call and common checks; Improved adds a pre-model applicability preview. Future NER is confirmed before input; future doctor acceptance, prescription drafts and governed feedback connect after output.</desc>',
-           '<rect width="100%" height="100%" fill="#ffffff"/>']
-    canvas = Image.new('RGB', (WIDTH, HEIGHT), 'white')
-    draw = ImageDraw.Draw(canvas)
-    font_dir = Path('C:/Windows/Fonts')
-    def font(size, bold=False):
-        return ImageFont.truetype(str(font_dir/('segoeuib.ttf' if bold else 'segoeui.ttf')), size)
-    def text(x, y, value, size=21, color='#17324d', bold=False):
-        svg.append(f'<text x="{x}" y="{y+size}" font-family="Segoe UI,Arial,sans-serif" font-size="{size}" fill="{color}" font-weight="{700 if bold else 400}">{escape(value)}</text>')
-        draw.text((x,y), value, font=font(size,bold), fill=color)
-    def rect(x,y,w,h,fill,stroke,dashed=False,radius=13):
-        svg.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}" fill="{fill}" stroke="{stroke}" stroke-width="2"'+(' stroke-dasharray="8 6"' if dashed else '')+'/>')
-        draw.rounded_rectangle((x,y,x+w,y+h), radius=radius, fill=fill, outline=stroke, width=2)
-        # Dashed arrows and explicit F labels distinguish futures in the PNG.
-    text(45,24,'Clinical NLP | Complete recommender architecture',34,bold=True)
-    text(45,70,'I = implemented prototype     F = future design only     Orange = tested optional preview     Dashed arrows = future connections',21)
-    groups = [(35,110,1690,295,'OFFLINE | Protocol preparation and source provenance'),
-              (35,455,490,330,'INPUT | Patient facts remain available throughout'),
-              (560,455,1140,675,'RUNTIME | Shared pipeline'),
-              (35,795,490,300,'FUTURE | NER input connector'),
-              (35,1160,1010,315,'FUTURE | Clinician workflow and governed feedback')]
-    for x,y,w,h,title in groups:
-        rect(x,y,w,h,'#fafcfe','#d6e0ea')
-        text(x+16,y+12,title,19,bold=True)
-    text(60,307,'Provenance travels with evidence: source ID + title/version + PDF page -> evidence ID -> card ID -> output references',21)
-    for source,target,points,future,label in EDGES:
-        color = '#7955a0' if future else '#376277'
-        coords = ' '.join(f'{x},{y}' for x,y in points)
-        svg.append(f'<polyline points="{coords}" fill="none" stroke="{color}" stroke-width="2.5"'+(' stroke-dasharray="9 7"' if future else '')+'/>')
-        if future:
-            for (x1,y1),(x2,y2) in zip(points,points[1:]):
-                length = abs(x2-x1)+abs(y2-y1)
-                for start in range(0,length,16):
-                    stop=min(start+9,length)
-                    draw.line((x1+(x2-x1)*start/length,y1+(y2-y1)*start/length,
-                               x1+(x2-x1)*stop/length,y1+(y2-y1)*stop/length),fill=color,width=3)
+ROOT=Path(__file__).resolve().parents[1]
+W,H=1600,1090
+im=Image.new('RGB',(W,H),'#F7FAFD'); d=ImageDraw.Draw(im)
+svg=[f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" role="img" aria-labelledby="title desc">',
+     '<title id="title">Clinical NLP — recommendation system architecture</title>',
+     '<desc id="desc">Implemented preparation: four protocols, extraction and visual review, 32 canonical cards and BM25 indexing. Patient facts and indexed evidence feed retrieval, Qwen model, shared applicability and missing-information checks, and four-category care plan with citations. Baseline takes the direct path; Improved alone adds the tested pre-model applicability preview. Patient context and source IDs remain attached. Zero cards causes no model call. Future dashed connections show NER with clinician confirmation, doctor acceptance, prescription draft and governed feedback to reviewed cards.</desc>',
+     f'<rect width="{W}" height="{H}" fill="#F7FAFD"/>']
+INK='#18364D'; MUTED='#5D7487'; TEAL='#087F8C'; PURPLE='#8461B5'; ORANGE='#B77913'
+fonts={}
+def font(size,bold=False):
+    key=(size,bold)
+    if key not in fonts: fonts[key]=ImageFont.truetype('C:/Windows/Fonts/'+('segoeuib.ttf' if bold else 'segoeui.ttf'),size)
+    return fonts[key]
+def text(x,y,s,size=18,color=INK,bold=False,anchor='start'):
+    svg.append(f'<text x="{x}" y="{y}" fill="{color}" font-family="Segoe UI,Arial,sans-serif" font-size="{size}" font-weight="{700 if bold else 400}" text-anchor="{anchor}">{escape(s)}</text>')
+    width=d.textlength(s,font=font(size,bold)); xx=x-(width/2 if anchor=='middle' else width if anchor=='end' else 0)
+    d.text((xx,y-size),s,font=font(size,bold),fill=color)
+def rect(x,y,w,h,fill='white',stroke='#DAE6EE',r=14):
+    svg.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" fill="{fill}" stroke="{stroke}" stroke-width="1.5"/>')
+    d.rounded_rectangle((x,y,x+w,y+h),radius=r,fill=fill,outline=stroke,width=2)
+def line(points,color=TEAL,width=2,dash=False,arrow=False):
+    svg.append(f'<polyline points="'+ ' '.join(f'{x},{y}' for x,y in points)+f'" fill="none" stroke="{color}" stroke-width="{width}" stroke-linecap="round" stroke-linejoin="round"'+(' stroke-dasharray="7 7"' if dash else '')+'/>')
+    for (x1,y1),(x2,y2) in zip(points,points[1:]):
+        if not dash: d.line((x1,y1,x2,y2),fill=color,width=width)
         else:
-            draw.line(points,fill=color,width=3)
-        (px,py),(ex,ey) = points[-2:]
-        dx,dy = ex-px,ey-py
-        if abs(dx)>abs(dy):
-            arrow=[(ex,ey),(ex-(11 if dx>0 else -11),ey-6),(ex-(11 if dx>0 else -11),ey+6)]
-        else:
-            arrow=[(ex,ey),(ex-6,ey-(11 if dy>0 else -11)),(ex+6,ey-(11 if dy>0 else -11))]
-        svg.append(f'<polygon points="'+ ' '.join(f'{x},{y}' for x,y in arrow)+f'" fill="{color}"/>')
-        draw.polygon(arrow, fill=color)
-        if label:
-            value,x,y = label
-            text(x,y,value,18,color)
-    for _,x,y,w,h,kind,lines in NODES:
-        h = max(h, len(lines)*25+20)
-        fill,stroke = COLORS[kind]
-        rect(x,y,w,h,fill,stroke,dashed=kind=='future')
-        for i,line in enumerate(lines):
-            size = 20 if i else 22
-            while font(size,i==0).getlength(line) > w-28:
-                size -= 1
-            text(x+14,y+11+i*25,line,size,bold=i==0)
-    text(45,1501,'Full source passages stay in canonical cards / retrieved records / UI; the model receives the readable clinical-field projection.',21)
-    text(45,1534,'Limited checks are not full clinical validation. Frozen expected answers remain outside prompts and the retrieval index.',21)
-    svg.append('</svg>')
-    (folder/'architecture.svg').write_text('\n'.join(svg),encoding='utf-8')
-    canvas.save(folder/'architecture.png')
-    mermaid=['flowchart TB']
-    for key,_,_,_,_,kind,lines in NODES:
-        mermaid.append(f'  {key}["'+ '<br/>'.join(escape(line) for line in lines)+'"]')
-    for source,target,_,future,label in EDGES:
-        mermaid.append(f'  {source} '+('-.->' if future else '-->')+' '+target)
-    for kind,(fill,stroke) in COLORS.items():
-        mermaid.append(f'  classDef {kind} fill:{fill},stroke:{stroke},color:#17324d;')
-        mermaid.append('  class '+','.join(n[0] for n in NODES if n[5]==kind)+' '+kind+';')
-    (folder/'architecture.mmd').write_text('\n'.join(mermaid)+'\n',encoding='utf-8')
-    print(json.dumps({'diagram':'docs/architecture.svg','preview':'docs/architecture.png',
-                      'editable_mermaid':'docs/architecture.mmd','nodes':len(NODES),'edges':len(EDGES)}))
+            length=((x2-x1)**2+(y2-y1)**2)**.5
+            if length:
+                for start in range(0,int(length),14):
+                    end=min(start+7,length)
+                    d.line((x1+(x2-x1)*start/length,y1+(y2-y1)*start/length,x1+(x2-x1)*end/length,y1+(y2-y1)*end/length),fill=color,width=width)
+    if arrow:
+        x,y=points[-1]; a=atan2(y-points[-2][1],x-points[-2][0])
+        p=[(x,y),(x-10*cos(a-.5),y-10*sin(a-.5)),(x-10*cos(a+.5),y-10*sin(a+.5))]
+        svg.append('<polygon points="'+' '.join(f'{xx:.1f},{yy:.1f}' for xx,yy in p)+f'" fill="{color}"/>')
+        d.polygon(p,fill=color)
+def ellipse(x,y,w,h,fill='white',stroke=TEAL):
+    svg.append(f'<ellipse cx="{x+w/2}" cy="{y+h/2}" rx="{w/2}" ry="{h/2}" fill="{fill}" stroke="{stroke}" stroke-width="2"/>')
+    d.ellipse((x,y,x+w,y+h),fill=fill,outline=stroke,width=2)
+def icon(kind,x,y,color=TEAL):
+    def l(p): line([(x+a,y+b) for a,b in p],color,2)
+    def box(a,b,w,h): rect(x+a,y+b,w,h,'#FFFFFF',color,3)
+    if kind in ('pdf','extract','cards','output','rx','ner'):
+        if kind=='cards':
+            box(1,0,25,29); box(6,5,25,29)
+        else: box(5,1,27,32)
+        l([(11,11),(25,11)]); l([(11,17),(25,17)]); l([(11,23),(21,23)])
+        if kind=='extract': l([(21,29),(26,34),(36,23)])
+        if kind=='rx': text(x+17,y+27,'R',19,color,True,anchor='middle')
+        if kind=='ner': l([(0,7),(0,0),(7,0)]); l([(29,37),(37,37),(37,29)])
+    elif kind=='database':
+        rect(x+2,y+8,32,23,'#FFFFFF',color,0)
+        ellipse(x+2,y+24,32,11,'#FFFFFF',color)
+        ellipse(x+2,y+13,32,11,'#FFFFFF',color)
+        ellipse(x+2,y+1,32,11,'#FFFFFF',color)
+    elif kind=='patient':
+        ellipse(x+12,y,13,13,'#FFFFFF',color)
+        l([(3,34),(3,29),(6,23),(13,19),(24,19),(31,23),(34,29),(34,34)])
+        l([(13,27),(24,27)]);l([(18,22),(18,32)])
+    elif kind=='search':
+        ellipse(x+2,y+1,25,25,'#FFFFFF',color);l([(24,24),(36,36)])
+    elif kind=='model':
+        box(7,7,24,24)
+        for t in (12,20,27):
+            l([(t,0),(t,7)]);l([(t,31),(t,38)]);l([(0,t),(7,t)]);l([(31,t),(38,t)])
+        box(14,14,10,10)
+    elif kind in ('check','doctor'):
+        l([(18,1),(33,7),(32,22),(26,31),(18,37),(10,31),(4,22),(3,7),(18,1)])
+        l([(10,18),(16,24),(27,12)])
+    elif kind=='feedback':
+        l([(7,12),(13,4),(26,4),(33,12),(33,24)]);l([(26,18),(33,25),(38,18)])
+        l([(29,29),(23,36),(10,36),(3,28),(3,17)]);l([(0,23),(3,16),(10,22)])
+def node(x,y,w,h,title,subtitle,kind,tone='implemented'):
+    fill,stroke,color=('#FFFFFF','#BFDADD',TEAL) if tone=='implemented' else ('#FFF7E8','#E7CA8B',ORANGE) if tone=='tested' else ('#FBF8FF','#D6C8E9',PURPLE)
+    rect(x,y+4,w,h,'#EAF0F5','#EAF0F5')
+    rect(x,y,w,h,fill,stroke)
+    icon(kind,x+18,y+19,color)
+    text(x+68,y+44,title,20,color=INK,bold=True)
+    text(x+18,y+h-22,subtitle,15,color=MUTED)
 
+text(44,58,'Clinical NLP',34,bold=True)
+text(260,58,'System architecture',28,color=MUTED)
+text(45,94,'Protocol knowledge → patient-specific, source-linked recommendations',19,color=MUTED)
+for x,label,color in [(1030,'Implemented',TEAL),(1220,'Tested change',ORANGE),(1430,'Future',PURPLE)]:
+    rect(x,43,11,11,color,color,3); text(x+20,56,label,15,color=MUTED)
 
-if __name__ == '__main__':
-    main()
+rect(40,130,1480,205,'#EFF6FA','#E0EAF1',18)
+text(60,161,'01  /  KNOWLEDGE PREPARATION',15,color=MUTED,bold=True)
+rect(40,390,1480,400,'#FFFFFF','#E0EAF1',18)
+text(60,418,'02  /  RECOMMENDATION ENGINE',15,color=MUTED,bold=True)
+rect(40,840,1480,200,'#F5F1FB','#E0D6EF',18)
+text(60,872,'03  /  FUTURE INTEGRATIONS',15,color=PURPLE,bold=True)
+
+# Implemented source flow and index connector.
+for a,b in [(360,440),(740,820),(1120,1200)]: line([(a,256),(b,256)],arrow=True)
+line([(1350,312),(1350,358),(480,358),(480,540)],color='#7297A5',arrow=True)
+text(920,350,'indexed cards',14,color=MUTED,anchor='middle')
+
+# Five-stage runtime. Baseline is direct; only Improved takes the orange branch.
+for a,b in [(300,360),(600,660),(900,960),(1200,1260)]: line([(a,600),(b,600)],arrow=True)
+text(630,588,'Baseline',12,color=MUTED,anchor='middle')
+line([(540,540),(540,460),(620,460)],color=ORANGE,arrow=True)
+line([(900,460),(925,460),(925,510),(780,510),(780,540)],color=ORANGE,arrow=True)
+line([(480,660),(480,691)],color='#7297A5',arrow=True)
+line([(1080,660),(1080,691)],color='#7297A5',arrow=True)
+
+# Future links stay outside the main operational flow.
+line([(60,944),(24,944),(24,600),(60,600)],color=PURPLE,dash=True,arrow=True)
+line([(1500,600),(1534,600),(1534,820),(590,820),(590,900)],color=PURPLE,dash=True,arrow=True)
+line([(740,944),(820,944)],color=PURPLE,dash=True,arrow=True)
+line([(590,988),(590,1015),(1350,1015),(1350,988)],color=PURPLE,dash=True,arrow=True)
+line([(1500,944),(1570,944),(1570,174),(970,174),(970,200)],color=PURPLE,dash=True,arrow=True)
+
+node(60,200,300,112,'Protocol PDFs','4 protocols · 45 assigned pages','pdf')
+node(440,200,300,112,'Extract + review','Text · tables · footnotes','extract')
+node(820,200,300,112,'Canonical cards','32 cards · rules + evidence IDs','cards')
+node(1200,200,300,112,'BM25 index','Local JSON · source-linked RAG','database')
+
+node(60,540,240,120,'Patient facts','Symptoms · history · unknowns','patient')
+node(360,540,240,120,'Retrieve cards','Positive anchors · 0–10 cards','search')
+node(660,540,240,120,'Qwen model','Same model · both modes','model')
+node(960,540,240,120,'Shared checks','Rules · missing info · citations','check')
+node(1260,540,240,120,'Care plan','Dx · tests · medicines · advice','output')
+rect(620,425,280,70,'#FFF7E8','#E7CA8B',12)
+text(640,449,'TESTED · IMPROVED ONLY',12,color=ORANGE,bold=True)
+text(640,477,'Applicability preview',20,color=INK,bold=True)
+rect(360,694,240,35,'#F1F6FA','#DCE8EF',9)
+text(480,717,'0 cards → no model call',15,color=MUTED,anchor='middle')
+rect(960,694,240,35,'#F1F6FA','#DCE8EF',9)
+text(1080,717,'Saved run + evidence log',15,color=MUTED,anchor='middle')
+rect(1260,694,240,35,'#F1F6FA','#DCE8EF',9)
+text(1380,717,'Source title · version · page',14,color=MUTED,anchor='middle')
+rect(60,751,1440,26,'#E9F6F4','#E9F6F4',8)
+text(780,770,'Patient context + source IDs stay attached throughout the pipeline',15,color=TEAL,anchor='middle')
+
+node(60,900,300,88,'NER + doctor review','Extract → confirm → patient facts','ner','future')
+node(440,900,300,88,'Doctor acceptance','Accept · edit · reject','doctor','future')
+node(820,900,300,88,'Prescription draft','Accepted items · clinician signs','rx','future')
+node(1200,900,300,88,'Feedback + review','Governed updates → source cards','feedback','future')
+text(60,1072,'Solid arrows: implemented flow     Dashed arrows: future design only     No NER or prescription integration is implemented.',15,color=MUTED)
+svg.append('</svg>')
+target=ROOT/'docs/architecture.svg'
+target.write_text('\n'.join(svg),encoding='utf-8')
+im.save(ROOT/'docs/architecture.png')
+print('Rendered docs/architecture.svg and docs/architecture.png.')
