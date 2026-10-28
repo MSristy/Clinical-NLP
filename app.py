@@ -185,8 +185,13 @@ with left, st.container(key='patient-panel'):
         if mode == 'Advanced JSON':
             st.text_area('Editable patient JSON', key='patient_json', height=540)
             patient = json.loads(st.session_state.patient_json)
+            if not isinstance(patient, dict):
+                raise ValueError('Patient input must be a JSON object.')
         else:
-            patient = guided_editor(json.loads(st.session_state.patient_json))
+            candidate = json.loads(st.session_state.patient_json)
+            if not isinstance(candidate, dict):
+                raise ValueError('Patient input must be a JSON object. Correct it in Advanced JSON or press New patient.')
+            patient = guided_editor(candidate)
             st.session_state.patient_json = json.dumps(patient, ensure_ascii=False, indent=2)
     except (ValueError, TypeError) as exc:
         patient = None

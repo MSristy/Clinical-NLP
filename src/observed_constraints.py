@@ -1,6 +1,6 @@
 """Check explicit observed prerequisites only; no inferred diagnosis/dehydration class."""
 import operator
-from src.patient_facts import at_path
+from src.patient_facts import at_path, FIELD_SLOTS, EXAM_FIELDS
 from src.clinical_context import normalized_context
 
 PATHS = {'age_years': 'age_years', 'illness_day': 'illness_day', 'temperature_c': 'temperature_c',
@@ -18,6 +18,17 @@ PATHS.update({'bleeding_present': 'symptoms.bleeding', 'severe_abdominal_pain': 
               'haemodynamic_instability': 'examination.haemodynamic_instability',
               'oliguria_assessed_by_clinician': 'examination.oliguria_assessed_by_clinician',
               'chikungunya_high_risk': 'clinical_assessment.chikungunya_high_risk'})
+PATHS.update({field: 'examination.'+field for field in (
+    'dehydration_class', 'danger_signs_present', 'severe_dehydration_present',
+    'lethargic_or_unconscious', 'absent_or_weak_pulse', 'respiratory_distress', 'sunken_eyes',
+    'drinks_poorly_or_unable', 'skin_pinch_very_slow', 'irritable_or_restless', 'rapid_pulse',
+    'thirsty_drinks_eagerly', 'skin_pinch_slow', 'walks_without_assistance', 'passing_urine', 'ors_without_vomiting')})
+PATHS['hours_without_watery_stool'] = 'examination.hours_since_last_watery_stool'
+# Disease suspicion remains a model judgment. Other registered source conditions
+# must not be treated as satisfied merely because normalization was incomplete.
+MODEL_REVIEW_FIELDS = {'acute_febrile_illness', 'dengue_suspected', 'chikungunya_suspected',
+                      'cholera_suspected', 'hypertension_under_assessment', 'acute_fever_onset',
+                      'fever_present', 'acute_watery_diarrhoea'}
 OPS = {'eq': operator.eq, 'ne': operator.ne, 'gt': operator.gt, 'gte': operator.ge, 'lt': operator.lt, 'lte': operator.le}
 
 
@@ -47,18 +58,47 @@ def observed(node, patient, derived=None):
 
 
 def mandatory_unknowns(node, patient):
-    # Unknown members of OR are not necessarily required; do not require them all.
-    if node['op'] == 'any':
+    if observed(node, patient) is not None:
         return []
-    if node['op'] == 'all':
+    if node['op'] in ('all', 'any'):
+        # An unresolved OR is not clearance. These are clarification options,
+        # not a claim that every OR member must become true.
         return [field for child in node['conditions'] for field in mandatory_unknowns(child, patient)]
+    if node['field'] in MODEL_REVIEW_FIELDS:
+        return []
+    if node['field'] in EXAM_FIELDS and node['field'] not in FIELD_SLOTS:
+        return ['examination']
     path = PATHS.get(node['field'])
-    question_path = 'symptoms.severe_joint_pain' if node['field'] == 'severe_arthralgia_or_arthritis' else path
-    derived = normalized_context(patient)
-    return [question_path] if path and at_path(patient, path) is None and node['field'] not in derived else []
+    return FIELD_SLOTS.get(node['field'], [path] if path else [])
+
+
+def medicine_allergy_conflict(card, patient):
+    """Exact named medicine allergy only; never infer class/cross-reactivity."""
+    import re
+    allergies = at_path(patient, 'history.known_allergies')
+    if isinstance(allergies, str):
+        names = [allergies]
+    elif isinstance(allergies, list):
+        names = [a.get('name', '') if isinstance(a, dict) else a for a in allergies]
+    else:
+        names = []
+    for medicine in card['medications']:
+        for name in names:
+            if not isinstance(name, str):
+                continue
+            text = name.strip().lower()
+            if re.search(r'\b(?:no|denies|not|without)\b', text):
+                continue  # Ambiguous negative prose is left for clinical review.
+            if re.search(r'(?<!\w)'+re.escape(medicine['name'].lower())+r'(?!\w)', text):
+                return True
+    return False
 
 
 def constraint_review(card, patient):
+    if medicine_allergy_conflict(card, patient):
+        return 'blocked', []
+    if card['disease'] == 'cholera' and normalized_context(patient).get('hydration_conflict', {}).get('value'):
+        return 'needs_information', ['clinical_assessment.dehydration_class']
     truth = observed(card['applicability'], patient)
     exclusions = [observed(exclusion, patient) for exclusion in card['exclusions']]
     if truth is False:
@@ -72,6 +112,8 @@ def constraint_review(card, patient):
         if any(observed(node, patient) is None for node in triggers):
             return 'trigger_review', []
     unknown = mandatory_unknowns(card['applicability'], patient)
+    for exclusion in card['exclusions']:
+        unknown.extend(mandatory_unknowns(exclusion, patient))
     if unknown:
         return 'needs_information', sorted(set(unknown))
     return ('eligible', []) if truth is True and all(value is False for value in exclusions) else ('model_review', [])

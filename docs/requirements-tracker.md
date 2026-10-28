@@ -50,3 +50,5 @@ Current milestone: Q1 and Q2 implementation/experiment package completed for the
 - [x] Hosted-evaluation preparation authorized; Cloud secrets fallback added without changing clinical/model behavior; 53 tests pass; metadata accessible.
 - [x] Public deployment at https://clinical-nlp-msristy.streamlit.app/; anonymous root-page HTTP 200 and genuine hosted C01 Baseline/Improved model generations verified; downloadable records retained locally and evaluator instructions/email draft prepared. Historical comparison unchanged.
 - [ ] User sends the verified hosted URL/instructions to the assessors by the requested deadline; no email/form submitted by the assistant.
+- [x] Pre-evaluator audit: reproduced and corrected numeric-BP retrieval, missing source gates, exact named allergies, hydration-table conflicts and malformed input; 70 software tests pass; original corpus/experiment retained. Details in docs/pre-evaluator-audit.md.
+- [ ] Finish separate current-release 12-call maintenance audit/source review and verify the updated hosted release.

@@ -4,6 +4,7 @@ No case IDs, diagnosis training, guessed laboratory thresholds or dehydration
 classification. Unresolvable facts remain absent/unknown.
 """
 import re
+import math
 from src.patient_facts import at_path
 
 
@@ -12,6 +13,65 @@ def normalized_context(patient):
     def put(field, value, paths, method):
         if value is not None:
             context[field] = {'value': value, 'source_paths': paths, 'method': method}
+    # Exact structured observations. These aliases do not infer a disease from
+    # free text; each derived value retains the patient path used.
+    aliases = {
+        'fever_present': 'symptoms.fever', 'acute_fever_onset': 'symptoms.acute_fever_onset',
+        'acute_watery_diarrhoea': 'symptoms.acute_watery_diarrhoea',
+        'deterioration_as_fever_settles': 'symptoms.deterioration_as_fever_settles',
+        'lethargy_irritability_restlessness': 'symptoms.lethargy_irritability_restlessness',
+        'cold_clammy_extremities': 'symptoms.cold_clammy_extremities',
+        'persistent_disabling_joint_symptoms_after_3_days_treatment': 'symptoms.persistent_disabling_joint_symptoms_after_3_days_treatment',
+        'hmod_present': 'examination.hmod_present',
+    }
+    for field, path in aliases.items():
+        value = at_path(patient, path)
+        put(field, value if isinstance(value, bool) else None, [path], 'Exact structured observation')
+    oral = at_path(patient, 'examination.oral_fluids_tolerated')
+    put('cannot_tolerate_oral_fluids', not oral if isinstance(oral, bool) else None,
+        ['examination.oral_fluids_tolerated'], 'Boolean inversion of documented oral tolerance')
+    # WHO cholera PDF 5-6: danger signs take priority over some-dehydration
+    # signs. Only the listed exact structured values/phrases are normalized.
+    exam = patient.get('examination') or {}
+    signs = {key: exam[key] for key in (
+        'lethargic_or_unconscious', 'absent_or_weak_pulse', 'respiratory_distress',
+        'sunken_eyes', 'drinks_poorly_or_unable', 'skin_pinch_very_slow',
+        'irritable_or_restless', 'rapid_pulse', 'thirsty_drinks_eagerly', 'skin_pinch_slow')
+        if isinstance(exam.get(key), bool)}
+    phrase_aliases = {
+        'mental_status': {'awake and alert': {'lethargic_or_unconscious': False}, 'alert': {'lethargic_or_unconscious': False},
+                         'lethargic': {'lethargic_or_unconscious': True}, 'unconscious': {'lethargic_or_unconscious': True}},
+        'pulse': {'rapid but not weak or absent': {'rapid_pulse': True, 'absent_or_weak_pulse': False},
+                  'normal': {'rapid_pulse': False, 'absent_or_weak_pulse': False},
+                  'weak': {'absent_or_weak_pulse': True}, 'absent': {'absent_or_weak_pulse': True}},
+        'eyes': {'sunken': {'sunken_eyes': True}, 'not sunken': {'sunken_eyes': False}},
+        'drinking': {'eagerly; can drink safely': {'thirsty_drinks_eagerly': True, 'drinks_poorly_or_unable': False},
+                     'unable to drink': {'drinks_poorly_or_unable': True}, 'drinks poorly': {'drinks_poorly_or_unable': True}},
+        'skin_pinch': {'returns slowly, not very slowly': {'skin_pinch_slow': True, 'skin_pinch_very_slow': False},
+                       'returns very slowly': {'skin_pinch_very_slow': True},
+                       'normal': {'skin_pinch_slow': False, 'skin_pinch_very_slow': False}},
+    }
+    for path, phrases in phrase_aliases.items():
+        value = exam.get(path)
+        for field, truth in phrases.get(value.strip().lower() if isinstance(value, str) else '', {}).items():
+            signs.setdefault(field, truth)
+    if isinstance(exam.get('restless'), bool):
+        signs.setdefault('irritable_or_restless', exam['restless'])
+    for field, value in signs.items():
+        put(field, value, ['examination'], 'WHO_CHOLERA_2024 PDF 5-6: exact sign/phrase alias')
+    dangers = [signs.get(k) for k in ('lethargic_or_unconscious', 'absent_or_weak_pulse', 'respiratory_distress')]
+    danger = True if True in dangers else False if all(v is False for v in dangers) else None
+    severe_signs = [signs.get(k) for k in ('sunken_eyes', 'drinks_poorly_or_unable', 'skin_pinch_very_slow')]
+    severe = True if danger is True or severe_signs.count(True) >= 2 else False if danger is False and severe_signs.count(False) >= 2 else None
+    some_signs = [signs.get(k) for k in ('irritable_or_restless', 'sunken_eyes', 'rapid_pulse', 'thirsty_drinks_eagerly', 'skin_pinch_slow')]
+    hydration = 'severe' if severe is True else 'some' if severe is False and danger is False and some_signs.count(True) >= 2 else None
+    put('danger_signs_present', danger, ['examination'], 'WHO_CHOLERA_2024 PDF 5-6: OR of three assessed danger signs')
+    put('severe_dehydration_present', severe, ['examination'], 'WHO_CHOLERA_2024 PDF 5-6: danger sign or at least two severe signs')
+    explicit_hydration = exam.get('dehydration_class') or at_path(patient, 'clinical_assessment.dehydration_class')
+    if hydration and explicit_hydration and hydration != explicit_hydration:
+        put('hydration_conflict', True, ['examination', 'clinical_assessment'], 'Recorded class conflicts with source-table signs; clinician reconciliation required')
+    put('dehydration_class', hydration or explicit_hydration, ['examination', 'clinical_assessment'],
+        'WHO_CHOLERA_2024 PDF 5-6 table or explicit clinician class; no classification from missing signs')
     exclusion = at_path(patient, 'clinical_assessment.dengue_excluded')
     narrative = str(patient.get('additional_context') or '').lower()
     if exclusion is None and 'dengue has not been excluded by the clinician' in narrative:
@@ -40,6 +100,20 @@ def normalized_context(patient):
                 put('months_since_step1_started', months if isinstance(months, (int, float)) and not isinstance(months, bool) else None,
                     ['history.current_medicines.0.months_on_regimen'], 'Direct elapsed-time alias; no time conversion')
     readings = at_path(patient, 'examination.office_bp_readings_mmhg')
+    single = at_path(patient, 'examination.bp_mmhg')
+    supplied_readings = readings if isinstance(readings, list) else [single] if isinstance(single, dict) else []
+    valid_readings = [r for r in supplied_readings if isinstance(r, dict) and
+                     all(isinstance(r.get(k), (int, float)) and not isinstance(r[k], bool) and math.isfinite(r[k])
+                         for k in ('systolic', 'diastolic'))]
+    positive_narrative = ''
+    from src.retrieval_context import positive_text
+    positive_narrative = positive_text(patient.get('chief_complaint', ''))
+    prose_bp = re.findall(r'\b(?:bp|blood pressure)(?:\s+(?:is|of))?\s*[:=]?\s*(\d{2,3})\s*/\s*(\d{2,3})', positive_narrative, re.I)
+    if any(r['systolic'] >= 140 or r['diastolic'] >= 90 for r in valid_readings) or any(int(s) >= 140 or int(d) >= 90 for s, d in prose_bp):
+        put('elevated_bp_retrieval_cue', True, ['examination', 'chief_complaint'], 'BD_HTN_2023_2E PDF 46: numeric BP retrieval cue only, not diagnostic confirmation')
+    for field, key in (('sbp_mmhg', 'systolic'), ('dbp_mmhg', 'diastolic')):
+        values = {r[key] for r in valid_readings}
+        put(field, next(iter(values)) if len(values) == 1 else None, ['examination'], 'Consistent supplied BP component; no mean or unreported reading invented')
     if prior is True or isinstance(readings, list) and readings:
         put('hypertension_under_assessment', True,
             ['history.elevated_bp_confirmed_on_prior_visits', 'examination.office_bp_readings_mmhg'], 'Documented hypertension history or BP-assessment readings, not a new confirmed diagnosis')

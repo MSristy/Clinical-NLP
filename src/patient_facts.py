@@ -29,6 +29,9 @@ SLOTS = {
     'clinical_assessment.dengue_excluded': 'Has the clinician excluded dengue after considering test timing and findings?',
     'symptoms.severe_joint_pain': 'Is the joint pain severe, and is there arthritis?',
     'available_tests': 'What test results are available, with dates or illness day and clinician review?',
+    'clinical_assessment.pre_losartan_creatinine_checked': 'Has the clinician reviewed serum creatinine before considering losartan?',
+    'clinical_assessment.pre_losartan_potassium_checked': 'Has the clinician reviewed serum potassium before considering losartan?',
+    'clinical_assessment.dehydration_class': 'What dehydration class does the clinician establish after reconciling the danger signs and hydration findings?',
 }
 
 FIELD_SLOTS = {
@@ -43,7 +46,9 @@ FIELD_SLOTS = {
     'medicines_taken_regularly_correctly': ['history.medicines_taken_regularly_and_correctly'],
     'bp_target_met': ['examination.clinician_recorded_bp_target', 'examination.office_bp_readings_mmhg'],
     'sbp_mmhg': ['examination.office_bp_readings_mmhg'], 'dbp_mmhg': ['examination.office_bp_readings_mmhg'],
-    'pre_losartan_creatinine_checked': ['available_tests'], 'pre_losartan_potassium_checked': ['available_tests'],
+    'pre_losartan_creatinine_checked': ['clinical_assessment.pre_losartan_creatinine_checked'],
+    'pre_losartan_potassium_checked': ['clinical_assessment.pre_losartan_potassium_checked'],
+    'dehydration_class': ['clinical_assessment.dehydration_class'],
     'cholera_outbreak_declared': ['epidemiology.cholera_outbreak_declared_in_area'],
     'severe_arthralgia_or_arthritis': ['symptoms.severe_joint_pain'],
     'joint_symptoms_explained_by_other_condition': ['history.alternative_condition_explaining_joint_symptoms'],
@@ -74,6 +79,13 @@ def questions_for_card(patient, card):
     from src.clinical_context import normalized_context
     if 'dengue_excluded_by_clinician' in normalized_context(patient):
         unknown.pop('clinical_assessment.dengue_excluded', None)
+    derived = normalized_context(patient)
+    for concept, slot in (
+        ('pre_losartan_creatinine_checked', 'clinical_assessment.pre_losartan_creatinine_checked'),
+        ('pre_losartan_potassium_checked', 'clinical_assessment.pre_losartan_potassium_checked'),
+        ('dehydration_class', 'clinical_assessment.dehydration_class')):
+        if concept in derived and not (concept == 'dehydration_class' and derived.get('hydration_conflict')):
+            unknown.pop(slot, None)
     return {field: unknown[field] for field in sorted(fields) if field in unknown}
 
 

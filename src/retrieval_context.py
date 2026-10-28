@@ -1,7 +1,7 @@
 """Conservative English retrieval cues, not clinical negation/NER or diagnosis."""
 import re
 
-RETRIEVAL_VERSION = 'positive-source-anchor-gate-v1'
+RETRIEVAL_VERSION = 'positive-source-anchor-gate-v2-audit'
 CLAUSES = re.compile(r'[.;!?\n]+|\b(?:but|however|except|yet)\b', re.I)
 NEGATION = re.compile(r"\b(?:no|denies|denied|without|negative for|does not have|doesn't have|not experiencing|not reporting)\b", re.I)
 UNKNOWN = re.compile(r'\b(?:unknown|uncertain|not known|not assessed|not reported|not provided)\b', re.I)
@@ -29,6 +29,8 @@ def normalized_words(value):
     value = value.lower().replace('_', ' ').replace('-', ' ')
     value = re.sub(r'\bdiarrhea\b', 'diarrhoea', value)
     value = re.sub(r'\bfebrile\b', 'fever', value)
+    value = re.sub(r'\bhypertension\b', 'elevated blood pressure', value)
+    value = re.sub(r'\bwatery (?:stools?|loose stools?)\b', 'watery diarrhoea', value)
     value = re.sub(r'\b(?:high|raised)\s+(?:bp|blood pressure)\b', 'elevated blood pressure', value)
     value = re.sub(r'\bjoint (?:pain|pains)\b', 'arthralgia', value)
     return ' '.join(re.findall(r'[a-z]+', value))

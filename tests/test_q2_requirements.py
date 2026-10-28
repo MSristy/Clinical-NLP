@@ -110,7 +110,8 @@ class Q2RequirementsTests(unittest.TestCase):
 
     def test_source_entailed_reassessment_is_retained(self):
         patient, _, hits = retrieve({'chief_complaint': 'Acute watery diarrhoea and thirst',
-                                    'age_years': 30, 'weight_kg': 53})
+                                    'age_years': 30, 'weight_kg': 53,
+                                    'examination': {'dehydration_class': 'some', 'danger_signs_present': False}})
         payload = self.decisions(hits)
         next(r for r in payload['decisions'] if r['card_id'] == 'CHO_PLAN_B').update(
             decision='recommend', fact_ids=[fact_table(patient)[0]['id']])
