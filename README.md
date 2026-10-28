@@ -14,7 +14,7 @@ Approved interface update: a compact sidebar with a sun/moon appearance button s
 
 Q1 contains 32 canonical cards across the four supplied protocols. Original PDFs, assigned-page extraction/rendering, source IDs and PDF positions are retained. Q2's light guided interface and two runnable modes are implemented. Q2 continued is complete: frozen cases/checklists, 12 fresh paired outputs, source-reviewed verdicts, compact table and a 392-word comparison note are under `evaluation/experiment/`. Result: both modes 23/24 checks and 5/6 cases passing all four; the preview did not demonstrate net benefit and used 708 extra input tokens. Do not interpret software completion or self-authored case checks as independent clinical validation. Training, ASR/NER training and hospital integration remain outside scope; the hosted assessment demo was added for the follow-up evaluation request, without production deployment claims.
 
-## System architecture (Question 3)
+## System architecture 
 
 ![Complete Clinical NLP architecture: implemented components, optional tested preview and future integrations](docs/architecture.svg)
 
