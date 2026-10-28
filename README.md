@@ -20,6 +20,8 @@ Teal boxes are implemented; orange is the tested pre-model preview; purple boxes
 
 ## Install and launch
 
+For the follow-up hosted evaluation, see [Community Cloud deployment](docs/deployment.md). Cloud configuration uses private Streamlit secrets when the existing local file is absent; clinical/model behavior is retained. A public URL and successful real generation must be verified after launch.
+
 For a new checkout:
 
 ```powershell

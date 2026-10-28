@@ -46,3 +46,6 @@ Current milestone: Q1 and Q2 implementation/experiment package completed for the
 - [x] Minimal flat submission_assessment prepared: 31 files, no subfolders; required deliverables only, runnable flat imports/paths verified, 12 original outputs combined without changing values, no private keys.
 
 - [x] User approved the concise visual architecture for GitHub; repository SVG/PNG/Mermaid and renderer updated to match the flat submission diagram.
+
+- [x] Hosted-evaluation preparation authorized; Cloud secrets fallback added without changing clinical/model behavior; 53 tests pass; metadata accessible.
+- [ ] Verify public deployment URL and genuine hosted model generations; prepare final evaluator instructions.

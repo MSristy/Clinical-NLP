@@ -20,7 +20,14 @@ def configuration():
                 return tomllib.load(file)
         except tomllib.TOMLDecodeError as exc:
             raise RuntimeError('Local secrets.toml is invalid TOML; check quotation marks and section names.') from exc
-    return {}
+    # Community Cloud supplies private settings through Streamlit's secrets store.
+    # Preserve the existing local-file path and never merge/fallback providers.
+    import streamlit as st
+    from streamlit.errors import StreamlitSecretNotFoundError
+    try:
+        return st.secrets.to_dict()
+    except StreamlitSecretNotFoundError:
+        return {}  # Existing free-tier/key guards fail closed before any request.
 
 
 def provider():

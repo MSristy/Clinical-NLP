@@ -1340,3 +1340,11 @@ At the user's request, replaced only submission_assessment/architecture.svg with
 ### 24.2 User-approved architecture publication
 
 The user requested publishing the revised visual architecture to GitHub. The repository's docs/architecture.svg and architecture.png now use the same concise, icon-based layout as the flat submission; docs/architecture.mmd carries the corresponding shorter logical flow. Updated the tracked SVG/PNG renderer and README legend wording. This publication changes diagram/documentation assets only; the working clinical engine and historical experiment results are untouched. The flat submission stays local and Git-ignored, including its blank configuration template; the public diagram is available under docs/architecture.svg.
+
+## 25. Hosted evaluation follow-up (2026-10-28)
+
+The user received a request for a live API or hosted interface, input/output instructions and access details by 2026-10-29, then explicitly authorized preparing and deploying the existing app through free Streamlit Community Cloud. The user completed Community Cloud sign-in/account setup. No email or form submission has been sent by the assistant.
+
+Deployment preparation changes only the configuration boundary: src/gemini.py keeps the original local TOML precedence and, only if that file is absent, reads Streamlit's private secrets store. Missing configuration continues to fail closed via the existing key/free-tier guards. Model, model settings, prompts, clinical cards, retrieval, conditions and expected answers are not changed. Four targeted offline cloud-configuration tests were added; the full suite passes 53 tests. Metadata-only Groq check reports the configured Qwen model active; this does not establish successful generation or final hosted readiness. The original experiment and source archive are unchanged; separate maintenance provenance records this configuration adjustment.
+
+Added docs/deployment.md with repository/entrypoint, private secrets setup, evaluator-access checks, free-quota and ephemeral-storage limits. Added submission_assessment.zip to local exclusions without touching the user's archive. Deployment, hosted generations and the exact public URL remain to be verified before a completed delivery claim.

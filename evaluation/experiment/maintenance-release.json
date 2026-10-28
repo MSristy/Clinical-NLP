@@ -19,7 +19,7 @@
     "src/__init__.py": "f00481a6b4749ecff2a03f9a98c758f3d85f5e01a69d908028be6ae105f595d4",
     "src/clinical_context.py": "0a314663c81c0153d234f0f92ce99c10e58e2801756d8a0704033e1be32b7c1f",
     "src/engine.py": "16add5565a5d629a9388dee79133c2b9ad843f111f6c3d37cca5ee3bf0cbc9e5",
-    "src/gemini.py": "112fbbbcce3a32836dc07c546285ced37e050f625f6c478d978b17ce29846571",
+    "src/gemini.py": "a79c9308bc319faff5f74f25857206101edf7850071597521cc54ba6c0047cd7",
     "src/groq_api.py": "2870366c1ac114e73175d3783d2fcb7cf18ff121c63a176e1191011ef2e026c4",
     "src/model.py": "787b67232140fc4a02bb0f8f6df8cea88628e936b51976f2f54c931dd0ce96c0",
     "src/observed_constraints.py": "9b74205adb968765bf56a31a4a80be77f1dd8a073f195f525695d4906292cefc",
@@ -48,5 +48,11 @@
     "new_model_calls": 0,
     "original_experiment_unchanged": true,
     "verification": "49 existing software tests passed; original patient/model controls retained; appearance switching preserves patient and evidence record."
+  },
+  "cloud_configuration_release": {
+    "date": "2026-10-28",
+    "scope": "Read Streamlit Cloud secrets only when the original local secrets file is absent; existing local precedence, model allowlist, free-tier/key guards, clinical logic and model settings are retained.",
+    "original_experiment_unchanged": true,
+    "no_new_comparison_claim": true
   }
 }
