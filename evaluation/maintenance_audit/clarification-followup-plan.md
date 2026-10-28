@@ -1,0 +1,9 @@
+# Separate clarification follow-up, defined before fresh calls
+
+The first current-release 12-call audit completed, but C05 still omitted source-required examination/epidemiology coverage. Preserve those outputs and mark that expected-behaviour limitation honestly; do not replace them or revise the original frozen checklist.
+
+Correct missing-examination slot roll-up and make the existing chikungunya source's epidemiology clarification available even when the formal probable-category card misses the retrieval cap. When the model considers the clinical diagnostic card relevant, retain unknown epidemiology clarification from PDF 11 in both modes. Neither change confirms a diagnosis. Also retain literal numeric BP as supplied findings rather than just a retrieval cue, and invalidate stale display records after a shared policy change.
+
+Run C01 and C05 once per mode after these changes, because these are the two original cases whose prompts change. Expect C01 to retain dengue day-3 investigation/safety, unassessed home-care restriction and no invented dose. Expect C05 to ask illness day and examination, preserve unknowns, discuss overlap and clarify residence/travel plus recent transmission before a formal probable-chikungunya label. Do not allow unconditional home clearance, individualized dosing, or a confirmed diagnosis. Review citations/restrictions/missing information against dengue PDF 26-28/37/39/45-48 and chikungunya PDF 11/18-22. Confirm offline that the other four cases still have identical requests to the first audit; otherwise broaden follow-up before claiming equivalence.
+
+Keep settings/corpus unchanged, use 65-second start spacing, save the first result including failure without retry, and freeze follow-up code/input hashes separately. This is targeted maintenance verification, not independent evaluation or a new experiment claiming the preview's benefit.

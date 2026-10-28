@@ -35,6 +35,9 @@ class MaintenanceAuditTests(unittest.TestCase):
             self.assertTrue(all(h['card']['disease'] == 'hypertension' for h in hits))
             self.assertEqual(patient, original)
             self.assertNotIn('previous_bp_confirmation_documented', normalized_context(patient))
+        prose = normalized_context({'chief_complaint': 'BP 170/110'})
+        self.assertEqual(prose['sbp_mmhg']['value'], 170)
+        self.assertEqual(prose['dbp_mmhg']['value'], 110)
 
     def test_normal_and_negated_numeric_bp_do_not_nominate_hypertension(self):
         for complaint in ('BP 118/76.', 'No high BP; BP 118/76.', 'No BP 170/110 finding was recorded.'):
@@ -154,3 +157,31 @@ class MaintenanceAuditTests(unittest.TestCase):
         for compact, hit in zip(context['cards'], hits):
             self.assertEqual(compact['recommended_action'], hit['card']['recommended_action'])
             self.assertEqual(compact['medications'], hit['card']['medications'])
+
+    def test_missing_examination_rolls_up_and_epidemiology_is_available(self):
+        from src.patient_facts import questions_for_card
+        patient = copy.deepcopy(CASES[4]['patient'])
+        home = questions_for_card(patient, CARDS['DEN_HOME_CARE'])
+        chik = questions_for_card(patient, CARDS['CHIK_CONSIDER'])
+        self.assertIn('examination', home)
+        self.assertNotIn('examination.warning_sign_screen', home)
+        self.assertIn('epidemiology.residence_or_travel_to_epidemic_area', chik)
+        self.assertIn('epidemiology.reported_local_transmission_within_15_days_before_onset', chik)
+        self.assertNotIn('epidemiology.residence_or_travel_to_epidemic_area',
+                         questions_for_card(CASES[3]['patient'], CARDS['CHIK_CONSIDER']))
+
+    def test_unrelated_but_unknown_question_withholds_only_that_card(self):
+        patient, _, hits = retrieve(CASES[0]['patient'])
+        from src.patient_facts import question_maps
+        fields, _ = question_maps(patient, hits)
+        epi = next(q for q, path in fields.items() if path.startswith('epidemiology.'))
+        decisions = {'decisions': [{'card_id': h['card']['card_id'], 'decision': 'not_applicable',
+                                  'fact_ids': [], 'missing_fields': []} for h in hits]}
+        next(r for r in decisions['decisions'] if r['card_id'] == 'DEN_TEST_EARLY').update(
+            decision='recommend', fact_ids=[fact_table(patient)[0]['id']])
+        next(r for r in decisions['decisions'] if r['card_id'] == 'CHIK_TEST_TIMING').update(
+            decision='needs_information', missing_fields=[epi])
+        result = grounded_selection(patient, decisions, hits)
+        self.assertIn('DEN_TEST_EARLY', {s['card_id'] for s in result['selections']})
+        self.assertNotIn('CHIK_TEST_TIMING', {s['card_id'] for s in result['selections']})
+        self.assertTrue(any('unrelated clarification' in note for note in result['limitations']))

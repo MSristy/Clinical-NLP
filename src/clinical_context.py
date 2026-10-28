@@ -1,7 +1,7 @@
-"""Traceable aliases/arithmetic for documented hypertension follow-up facts.
+"""Traceable BP aliases and exact WHO cholera source-table observations.
 
-No case IDs, diagnosis training, guessed laboratory thresholds or dehydration
-classification. Unresolvable facts remain absent/unknown.
+No case IDs, diagnosis training or guessed laboratory thresholds. Hydration
+checks use only explicit source-table observations. Unknowns stay unresolved.
 """
 import re
 import math
@@ -112,8 +112,12 @@ def normalized_context(patient):
     if any(r['systolic'] >= 140 or r['diastolic'] >= 90 for r in valid_readings) or any(int(s) >= 140 or int(d) >= 90 for s, d in prose_bp):
         put('elevated_bp_retrieval_cue', True, ['examination', 'chief_complaint'], 'BD_HTN_2023_2E PDF 46: numeric BP retrieval cue only, not diagnostic confirmation')
     for field, key in (('sbp_mmhg', 'systolic'), ('dbp_mmhg', 'diastolic')):
-        values = {r[key] for r in valid_readings}
-        put(field, next(iter(values)) if len(values) == 1 else None, ['examination'], 'Consistent supplied BP component; no mean or unreported reading invented')
+        index = 0 if key == 'systolic' else 1
+        values = {r[key] for r in valid_readings} | {int(pair[index]) for pair in prose_bp}
+        put(field, next(iter(values)) if len(values) == 1 else None,
+            ['examination', 'chief_complaint'] if prose_bp else ['examination'],
+            'Consistent explicitly recorded BP component, including literal BP N/N prose; no mean or unreported reading invented'
+            if prose_bp else 'Consistent supplied BP component; no mean or unreported reading invented')
     if prior is True or isinstance(readings, list) and readings:
         put('hypertension_under_assessment', True,
             ['history.elevated_bp_confirmed_on_prior_visits', 'examination.office_bp_readings_mmhg'], 'Documented hypertension history or BP-assessment readings, not a new confirmed diagnosis')

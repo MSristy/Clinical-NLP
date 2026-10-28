@@ -1,5 +1,6 @@
 """Separate maintenance smoke calls; never writes the original experiment."""
 import hashlib
+import argparse
 import json
 from pathlib import Path
 import sys
@@ -19,6 +20,14 @@ def digest(path):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--followup', action='store_true', help='Separate first C01/C05 requests after the documented question-mapping correction.')
+    parser.add_argument('--robustness-followup', action='store_true', help='Separate C01/C05 requests after the documented invalid-card isolation correction.')
+    args = parser.parse_args()
+    global FOLDER
+    if args.followup or args.robustness_followup:
+        FOLDER = FOLDER/('robustness_followup' if args.robustness_followup else 'clarification_followup')
+        FOLDER.mkdir(exist_ok=True)
     destination = FOLDER/'outputs'
     if destination.exists() and list(destination.glob('*.json')):
         raise SystemExit('Audit outputs already exist; do not overwrite or cherry-pick a retry.')
@@ -26,11 +35,17 @@ def main():
     files = ['evaluation/experiment/cases.json', 'evaluation/maintenance_audit/plan.md',
              'app.py', 'data/cards/cards.jsonl', 'data/index/bm25.json',
              'sources/source_manifest.json'] + [str(p.relative_to(ROOT)).replace('\\', '/') for p in sorted((ROOT/'src').glob('*.py'))]
+    if args.followup or args.robustness_followup:
+        files.append('evaluation/maintenance_audit/clarification-followup-plan.md')
+    if args.robustness_followup:
+        files.append('evaluation/maintenance_audit/robustness-followup-plan.md')
     manifest = {'date': '2026-10-28', 'scope': 'Current-release maintenance smoke audit; original experiment unchanged.',
                 'model': configured_model_name(), 'settings': SETTINGS,
                 'sha256': {name: digest(ROOT/name) for name in files}}
     (FOLDER/'manifest.json').write_text(json.dumps(manifest, indent=2)+'\n', encoding='utf-8')
     cases = json.loads((ROOT/'evaluation/experiment/cases.json').read_text())['cases']
+    if args.followup or args.robustness_followup:
+        cases = [c for c in cases if c['case_id'] in ('C01', 'C05')]
     previous = None
     for index, case in enumerate(cases):
         for mode in (('baseline', 'improved') if index % 2 == 0 else ('improved', 'baseline')):

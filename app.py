@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import time
 import streamlit as st
-from src.engine import evidence_for, recommend, retrieve
+from src.engine import evidence_for, recommend, retrieve, POLICY_VERSION
 from src.model import model_status, configured_model_name
 from src.patient import prepare_patient
 from src.retrieval_context import RETRIEVAL_VERSION
@@ -209,7 +209,7 @@ with left, st.container(key='patient-panel'):
             patient = prepare_patient(patient)
             if preview:
                 prepared, query, hits = retrieve(patient)
-                st.session_state.record = {'status': 'preview' if hits else 'no_evidence', 'mode': recommendation_mode, 'patient': prepared, 'query': query, 'retrieved': hits, 'output': None, 'errors': [], 'api_call_attempted': False, 'retrieval_version': RETRIEVAL_VERSION}
+                st.session_state.record = {'status': 'preview' if hits else 'no_evidence', 'mode': recommendation_mode, 'patient': prepared, 'query': query, 'retrieved': hits, 'output': None, 'errors': [], 'api_call_attempted': False, 'retrieval_version': RETRIEVAL_VERSION, 'policy_version': POLICY_VERSION}
             else:
                 generation_started = time.time()
                 with st.spinner('Reviewing protocol evidence and patient findings…'):
@@ -257,7 +257,7 @@ with st.sidebar:
 with right, st.container(key='results-panel'):
     st.subheader('2 · Evidence → 3 · Care plan')
     record = st.session_state.get('record')
-    if record and (record['patient'] != patient or record.get('mode', 'baseline') != recommendation_mode or record.get('retrieval_version') != RETRIEVAL_VERSION):
+    if record and (record['patient'] != patient or record.get('mode', 'baseline') != recommendation_mode or record.get('retrieval_version') != RETRIEVAL_VERSION or record.get('policy_version') != POLICY_VERSION):
         st.info('Patient information or recommendation mode has changed, or the retrieval policy was updated. Preview evidence or generate a new plan to update the results.')
         record = None
     if not record:

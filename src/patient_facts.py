@@ -73,6 +73,14 @@ def questions_for_card(patient, card):
         fields.update(FIELD_SLOTS.get(prerequisite, []))
         if prerequisite in EXAM_FIELDS:
             fields.add('examination')
+    if card['disease'] == 'chikungunya' and card['clinical_category'] == 'probable_diagnosis':
+        # PDF 11 distinguishes possible clinical disease from the probable
+        # clinical+epidemiological category. A consideration card also needs
+        # these clarification options, even when the formal card misses top-k.
+        fields.update(('epidemiology.residence_or_travel_to_epidemic_area',
+                       'epidemiology.reported_local_transmission_within_15_days_before_onset'))
+    if at_path(patient, 'examination') in (None, {}):
+        fields = {'examination' if field.startswith('examination.') else field for field in fields}
     if card['medications']:
         fields.update(('age_years', 'weight_kg', 'history.current_medicines', 'history.known_allergies'))
     unknown = missing_slots(patient)

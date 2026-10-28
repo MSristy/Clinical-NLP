@@ -24,6 +24,8 @@ PATHS.update({field: 'examination.'+field for field in (
     'drinks_poorly_or_unable', 'skin_pinch_very_slow', 'irritable_or_restless', 'rapid_pulse',
     'thirsty_drinks_eagerly', 'skin_pinch_slow', 'walks_without_assistance', 'passing_urine', 'ors_without_vomiting')})
 PATHS['hours_without_watery_stool'] = 'examination.hours_since_last_watery_stool'
+PATHS.update({field: 'clinical_assessment.'+field for field in (
+    'pre_losartan_creatinine_checked', 'pre_losartan_potassium_checked')})
 # Disease suspicion remains a model judgment. Other registered source conditions
 # must not be treated as satisfied merely because normalization was incomplete.
 MODEL_REVIEW_FIELDS = {'acute_febrile_illness', 'dengue_suspected', 'chikungunya_suspected',
@@ -69,7 +71,10 @@ def mandatory_unknowns(node, patient):
     if node['field'] in EXAM_FIELDS and node['field'] not in FIELD_SLOTS:
         return ['examination']
     path = PATHS.get(node['field'])
-    return FIELD_SLOTS.get(node['field'], [path] if path else [])
+    slots = FIELD_SLOTS.get(node['field'], [path] if path else [])
+    if at_path(patient, 'examination') in (None, {}):
+        slots = ['examination' if field.startswith('examination.') else field for field in slots]
+    return slots
 
 
 def medicine_allergy_conflict(card, patient):
