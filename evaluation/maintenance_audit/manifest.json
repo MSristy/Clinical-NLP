@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-28",
+  "scope": "Current-release maintenance smoke audit; original experiment unchanged.",
+  "model": "qwen/qwen3.8-27b",
+  "settings": {
+    "temperature": 0,
+    "max_completion_tokens": 900,
+    "reasoning_effort": "none"
+  },
+  "sha256": {
+    "evaluation/experiment/cases.json": "e99eb58399239c0d6046858c85d77872f4c47399104ea4be941e4f130a55604c",
+    "evaluation/maintenance_audit/plan.md": "ba786367af4b92fbec08e71e43f2fe1693629f41c1a5d1ad861bbc24c9708666",
+    "app.py": "75717ae029587f0d640035d6d154d295a21b52cabdd5107df83bb9fea858dd0a",
+    "data/cards/cards.jsonl": "2a5d99bd7402ea3a05d9d51abae32082761c3c702eef0567bf2ba9b39db8084a",
+    "data/index/bm25.json": "0c47f9a1937b6194f465ea2a9656e3d5167c83ece45a1755ba4dc9ecd9e9330b",
+    "sources/source_manifest.json": "42b1b5d2b2db8840afadeb5aeae640580cd995173e5a8516774a9dbfd8e25df5",
+    "src/__init__.py": "f00481a6b4749ecff2a03f9a98c758f3d85f5e01a69d908028be6ae105f595d4",
+    "src/clinical_context.py": "08712852da880ccdb0d3ad7014caf3cd36c1aead99831a384095627ca89c8968",
+    "src/engine.py": "1c245a79f0764e4326e19ad094be767c3c9d5a471f5cc58782d1dfd356eb307c",
+    "src/gemini.py": "a79c9308bc319faff5f74f25857206101edf7850071597521cc54ba6c0047cd7",
+    "src/groq_api.py": "2870366c1ac114e73175d3783d2fcb7cf18ff121c63a176e1191011ef2e026c4",
+    "src/model.py": "787b67232140fc4a02bb0f8f6df8cea88628e936b51976f2f54c931dd0ce96c0",
+    "src/observed_constraints.py": "d7570147bb1ae4148d50be5ab8f7a4718971d434826e9e8697b0c965e48c818e",
+    "src/patient.py": "d3ab7ba3eb2ab643bc51567ff847d3c2d9c70aeff90ecede740cf7ef9ea2f21a",
+    "src/patient_facts.py": "7755ba8bea09336c1871cd6dfbd321a1d0bd90bf169681f4a9506b84076fde33",
+    "src/prompt_transport.py": "594818035c86270c2f9bd81570b68c71476f51c32b81c500bce0b5443ed28083",
+    "src/release_integrity.py": "2fa31afd4049f2c53df48b71f2bf4d3b640a7045dd8c7813c8f64511783be7f7",
+    "src/retrieval.py": "c813a66745f7a05742032be04306a9f73b04bda8c85ee013ae430e0f8e5f6720",
+    "src/retrieval_context.py": "43f70ec6b187d4c438d002225e6dccfc25e378b44773de2516774c94d8e1402a"
+  }
+}

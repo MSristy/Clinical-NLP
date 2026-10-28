@@ -23,7 +23,7 @@
         ]
       ],
       "additional_pages_used": [],
-      "review_status": "All 12 assigned pages extracted and visually reviewed; evidence notes in master documentation; cards pending.",
+      "review_status": "Assigned-page review retained; canonical cards prepared. Coverage is limited to the curated recommendations; see docs/pre-evaluator-audit.md. Not independent clinical validation.",
       "user_assigned_reading": "User reports completed",
       "assistant_visually_reviewed_pdf_pages": [
         26,
@@ -57,7 +57,7 @@
         ]
       ],
       "additional_pages_used": [],
-      "review_status": "All 9 assigned pages visually reviewed including full page 64 algorithm and footnotes; H01 evidence notes recorded; cards pending.",
+      "review_status": "Assigned-page review retained; canonical cards prepared. Coverage is limited to the curated recommendations; see docs/pre-evaluator-audit.md. Not independent clinical validation.",
       "user_assigned_reading": "User reports completed",
       "assistant_visually_reviewed_pdf_pages": [
         46,
@@ -84,7 +84,7 @@
         ]
       ],
       "additional_pages_used": [],
-      "review_status": "All assigned pages text/visually reviewed; source discrepancies recorded in master documentation; cards pending.",
+      "review_status": "Assigned-page review retained; canonical cards prepared. Coverage is limited to the curated recommendations; see docs/pre-evaluator-audit.md. Not independent clinical validation.",
       "user_assigned_reading": "User reports completed",
       "assistant_visually_reviewed_pdf_pages": [
         5,
@@ -116,7 +116,7 @@
         ]
       ],
       "additional_pages_used": [],
-      "review_status": "All assigned pages text/visually reviewed; source discrepancies recorded in master documentation; cards pending.",
+      "review_status": "Assigned-page review retained; canonical cards prepared. Coverage is limited to the curated recommendations; see docs/pre-evaluator-audit.md. Not independent clinical validation.",
       "user_assigned_reading": "User reports completed",
       "assistant_visually_reviewed_pdf_pages": [
         11,

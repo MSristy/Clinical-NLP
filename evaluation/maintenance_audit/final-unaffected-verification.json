@@ -1,0 +1,53 @@
+{
+  "scope": "Offline replay only, not fresh API outputs.",
+  "checks": [
+    {
+      "case": "C02",
+      "mode": "baseline",
+      "exact_model_request_and_evidence_unchanged": true,
+      "offline_replay_output_equal": true
+    },
+    {
+      "case": "C02",
+      "mode": "improved",
+      "exact_model_request_and_evidence_unchanged": true,
+      "offline_replay_output_equal": true
+    },
+    {
+      "case": "C03",
+      "mode": "baseline",
+      "exact_model_request_and_evidence_unchanged": true,
+      "offline_replay_output_equal": true
+    },
+    {
+      "case": "C03",
+      "mode": "improved",
+      "exact_model_request_and_evidence_unchanged": true,
+      "offline_replay_output_equal": true
+    },
+    {
+      "case": "C04",
+      "mode": "baseline",
+      "exact_model_request_and_evidence_unchanged": true,
+      "offline_replay_output_equal": true
+    },
+    {
+      "case": "C04",
+      "mode": "improved",
+      "exact_model_request_and_evidence_unchanged": true,
+      "offline_replay_output_equal": true
+    },
+    {
+      "case": "C06",
+      "mode": "baseline",
+      "exact_model_request_and_evidence_unchanged": true,
+      "offline_replay_output_equal": true
+    },
+    {
+      "case": "C06",
+      "mode": "improved",
+      "exact_model_request_and_evidence_unchanged": true,
+      "offline_replay_output_equal": true
+    }
+  ]
+}

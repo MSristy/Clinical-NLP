@@ -33,7 +33,8 @@
     "ui/workspace.css": "cd98f84ee127bd2d41e209bfb1fd67ff76452fd79e37bcb725654872ce660054",
     "ui/header.html": "a99af6146687496e48afd606c7a9083e7235a66b3dc89a1d391698dc32f0b9bc",
     "ui/sidebar-brand.html": "0723dcd1713a39717a158216199aa5be282b7c9d0c868ea27b019ba71a45f0e4",
-    "ui/dark.css": "a23a76f728b9475327538b8e6769636aa023d07ce30d65541c91a3546d97e03a"
+    "ui/dark.css": "a23a76f728b9475327538b8e6769636aa023d07ce30d65541c91a3546d97e03a",
+    "sources/source_manifest.json": "9aa281522a028ddf1931d1b0da1e0065fd24dd80b70c68a835cffed4ab6a046d"
   },
   "limitations": [
     "Limited English heuristic, not comprehensive NER/negation or a diagnostic probability.",
@@ -61,6 +62,11 @@
     "original_experiment_unchanged": true,
     "no_new_comparison_claim": true,
     "clarification_followup": "Source-linked examination roll-up and chikungunya epidemiology clarification shared by both modes; original first audit outputs retained. Literal prose BP facts and policy-stale UI checks corrected.",
-    "card_isolation": "Withhold a model card/question with an unrelated global question ID, retain independently checked cards, expose limitation; preserve genuine intermediate failure."
+    "card_isolation": "Withhold a model card/question with an unrelated global question ID, retain independently checked cards, expose limitation; preserve genuine intermediate failure.",
+    "registry_status_only": {
+      "note": "Post-call metadata correction: replaced stale cards-pending source review status. Clinical title/version/pages and additional-page scope unchanged. Canonical rebuild and index remain byte-identical to the first audit hashes.",
+      "audit_manifest_source_registry_sha256": "42b1b5d2b2db8840afadeb5aeae640580cd995173e5a8516774a9dbfd8e25df5",
+      "current_source_registry_sha256": "9aa281522a028ddf1931d1b0da1e0065fd24dd80b70c68a835cffed4ab6a046d"
+    }
   }
 }

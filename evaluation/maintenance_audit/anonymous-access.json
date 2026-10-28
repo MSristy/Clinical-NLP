@@ -1,0 +1,7 @@
+{
+  "url": "https://clinical-nlp-msristy.streamlit.app/",
+  "anonymous_http_status": 200,
+  "final_url": "https://clinical-nlp-msristy.streamlit.app/",
+  "login_redirect": false,
+  "scope": "Anonymous page access only; actual final hosted model generations separately verified."
+}

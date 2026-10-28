@@ -1,0 +1,23 @@
+{
+  "url": "https://clinical-nlp-msristy.streamlit.app/",
+  "date": "2026-10-28",
+  "policy_version": "source-observations-and-advice-v5-audit-card-isolation",
+  "retrieval_version": "positive-source-anchor-gate-v2-audit",
+  "scope": "Two genuine final hosted model calls on a new non-example numeric BP patient; not clinical validation.",
+  "modes": {
+    "baseline": {
+      "status": "completed",
+      "seconds": 1.2968,
+      "source_cards": 9,
+      "generation_verified": true
+    },
+    "improved": {
+      "status": "completed",
+      "seconds": 1.8259,
+      "source_cards": 9,
+      "generation_verified": true
+    }
+  },
+  "same_patient_evidence_model_settings": true,
+  "no_individualized_medication_from_missing_context": true
+}

@@ -1,0 +1,10 @@
+{
+  "scope": "Offline regression replay of saved failed raw decisions; NOT a new model output.",
+  "original_failed_output_sha256": "c8b19117ca84437ba6215bb2d97a6b488c4861876a2f8109b97f3f3fb2c39e25",
+  "valid_independent_actions_retained": true,
+  "unrelated_card_withheld": true,
+  "limitations": [
+    "Needs clinician review: Chikungunya investigations depend on illness timing. This card was withheld because the model assigned an unrelated clarification; no question or action was substituted.",
+    "Provisional source-based plan for clinician review. Actions/medicine fields come from canonical evidence; supporting findings are copied from supplied patient facts. Card selection is a model judgment, not a verified diagnosis or exhaustive clinical assessment."
+  ]
+}

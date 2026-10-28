@@ -1,0 +1,42 @@
+[
+  {
+    "case_id": "C02",
+    "mode": "baseline",
+    "exact_request_and_evidence_unchanged": true
+  },
+  {
+    "case_id": "C02",
+    "mode": "improved",
+    "exact_request_and_evidence_unchanged": true
+  },
+  {
+    "case_id": "C03",
+    "mode": "baseline",
+    "exact_request_and_evidence_unchanged": true
+  },
+  {
+    "case_id": "C03",
+    "mode": "improved",
+    "exact_request_and_evidence_unchanged": true
+  },
+  {
+    "case_id": "C04",
+    "mode": "baseline",
+    "exact_request_and_evidence_unchanged": true
+  },
+  {
+    "case_id": "C04",
+    "mode": "improved",
+    "exact_request_and_evidence_unchanged": true
+  },
+  {
+    "case_id": "C06",
+    "mode": "baseline",
+    "exact_request_and_evidence_unchanged": true
+  },
+  {
+    "case_id": "C06",
+    "mode": "improved",
+    "exact_request_and_evidence_unchanged": true
+  }
+]

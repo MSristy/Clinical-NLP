@@ -17,6 +17,8 @@ The app runs in Streamlit Community Cloud and does not require the developer's c
 
 ## Deployment verification (28 October 2026)
 
+Latest pre-evaluator maintenance audit: source-boundary fixes and 72 software tests, four fresh targeted clarification checks, and final live Baseline/Improved generations on a new non-demo numeric-BP patient have been verified. See [audit findings and precise limits](pre-evaluator-audit.md). Earlier audit failures remain preserved; no independent clinical validation or exhaustive-input correctness is claimed. The original submitted comparison results apply to its archived release.
+
 The root URL returned HTTP 200 without signed-in account cookies or a login redirect. Actual hosted C01 generations completed in both modes, returned Groq responses with finish reason `stop`, and exposed downloadable input/output records. Baseline elapsed 1.3738 seconds; Improved 1.3590 seconds (one observation each, excluding cooldown). Both displayed all four output categories, source references and clarification needs. A new fictional urinary-symptom input returned zero cards and explicit insufficient evidence, with no model request. Offline inspection of the downloaded pair confirmed identical patient/evidence/model/settings and only the added applicability_preview context. This is a deployment smoke test, not a new clinical comparison or accuracy measurement. The original frozen six-case/12-output experiment remains separate and unchanged.
 
 ## Ready-to-copy email reply
