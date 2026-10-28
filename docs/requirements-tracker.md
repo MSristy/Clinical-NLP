@@ -48,4 +48,5 @@ Current milestone: Q1 and Q2 implementation/experiment package completed for the
 - [x] User approved the concise visual architecture for GitHub; repository SVG/PNG/Mermaid and renderer updated to match the flat submission diagram.
 
 - [x] Hosted-evaluation preparation authorized; Cloud secrets fallback added without changing clinical/model behavior; 53 tests pass; metadata accessible.
-- [ ] Verify public deployment URL and genuine hosted model generations; prepare final evaluator instructions.
+- [x] Public deployment at https://clinical-nlp-msristy.streamlit.app/; anonymous root-page HTTP 200 and genuine hosted C01 Baseline/Improved model generations verified; downloadable records retained locally and evaluator instructions/email draft prepared. Historical comparison unchanged.
+- [ ] User sends the verified hosted URL/instructions to the assessors by the requested deadline; no email/form submitted by the assistant.

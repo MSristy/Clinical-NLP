@@ -1,6 +1,8 @@
 # Streamlit Community Cloud deployment
 
-Follow-up evaluation requires a hosted interactive link. Public URL and real generation must be verified after deployment; GitHub and localhost links alone are insufficient. No deployment success is implied by this setup guide.
+Live interface: https://clinical-nlp-msristy.streamlit.app/
+
+Deployed on 28 October 2026 using Python 3.12. Anonymous root-page access and genuine hosted C01 model generations in both modes were verified. See [evaluator instructions and email draft](hosted-evaluation-instructions.md) for access, test steps and precise verification limits. GitHub and localhost links alone are insufficient for remote evaluation.
 
 Use the existing public `MSristy/Clinical-NLP` repository, `master`, root `app.py`, with Python 3.12 or another supported version. All runtime cards/index, fictional examples and local UI assets are tracked. No original PDFs or Windows fonts are needed to run the interface. Fonts are used only by the offline architecture renderer. `requirements.txt` pins the existing dependencies.
 

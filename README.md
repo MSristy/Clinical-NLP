@@ -1,5 +1,7 @@
 # Clinical NLP
 
+**Live assessment interface:** https://clinical-nlp-msristy.streamlit.app/ — public access without an evaluator login. [Input/output instructions and access notes](docs/hosted-evaluation-instructions.md). Hosted Baseline and Improved model generation verified on 28 October 2026. Free-tier quotas and Cloud cold starts may cause delays.
+
 Post-comparison retrieval maintenance (2026-10-23): 10 cards is a maximum, not a target. Explicit English negative/unknown clauses are excluded from search text, positive source-authored symptom anchors are required, and category coverage never pads with unrelated/zero-score cards. Zero relevant cards displays Insufficient evidence and skips the model call. Raw patient information remains unchanged. The complete software suite passes 49 tests. This limited heuristic is not comprehensive NER or clinical validation. The original 12-output experiment and its results are unchanged and apply to the original 19 source files preserved exactly in evaluation/experiment/frozen-source.zip. A separate maintenance-release.json verifies current runtime hashes; this maintenance release has not undergone a new paired model comparison.
 
 Post-experiment branding release: the project and repository are now **Clinical NLP** / **MSristy/Clinical-NLP**. The clinical corpus/index, six frozen inputs/checklists, original freeze manifest and twelve saved outputs are unchanged. `evaluation/experiment/branding-amendment.json` records exact reversible substitutions for the renamed app labels, download filename, component docstring and transport label, plus the integrity adapter. Verification reconstructs original frozen bytes rather than pretending the renamed runtime existed before the experiment. Interactive Baseline/Improved remain runnable; the historical batch runner requires a separately versioned plan/freeze for new calls. The post-rename suite has **40 passing tests**, including rejection of unrelated runtime/case changes. Existing local workspace-path references remain literal paths, not display branding.
@@ -10,7 +12,7 @@ Approved interface update: a compact sidebar with a sun/moon appearance button s
 
 ## Status and scope
 
-Q1 contains 32 canonical cards across the four supplied protocols. Original PDFs, assigned-page extraction/rendering, source IDs and PDF positions are retained. Q2's light guided interface and two runnable modes are implemented. Q2 continued is complete: frozen cases/checklists, 12 fresh paired outputs, source-reviewed verdicts, compact table and a 392-word comparison note are under `evaluation/experiment/`. Result: both modes 23/24 checks and 5/6 cases passing all four; the preview did not demonstrate net benefit and used 708 extra input tokens. Do not interpret software completion or self-authored case checks as independent clinical validation. Public deployment, training, ASR/NER training and hospital integration are outside scope.
+Q1 contains 32 canonical cards across the four supplied protocols. Original PDFs, assigned-page extraction/rendering, source IDs and PDF positions are retained. Q2's light guided interface and two runnable modes are implemented. Q2 continued is complete: frozen cases/checklists, 12 fresh paired outputs, source-reviewed verdicts, compact table and a 392-word comparison note are under `evaluation/experiment/`. Result: both modes 23/24 checks and 5/6 cases passing all four; the preview did not demonstrate net benefit and used 708 extra input tokens. Do not interpret software completion or self-authored case checks as independent clinical validation. Training, ASR/NER training and hospital integration remain outside scope; the hosted assessment demo was added for the follow-up evaluation request, without production deployment claims.
 
 ## System architecture (Question 3)
 
@@ -20,7 +22,7 @@ Teal boxes are implemented; orange is the tested pre-model preview; purple boxes
 
 ## Install and launch
 
-For the follow-up hosted evaluation, see [Community Cloud deployment](docs/deployment.md). Cloud configuration uses private Streamlit secrets when the existing local file is absent; clinical/model behavior is retained. A public URL and successful real generation must be verified after launch.
+For the follow-up hosted evaluation, see [Community Cloud deployment](docs/deployment.md). Cloud configuration uses private Streamlit secrets when the existing local file is absent; clinical/model behavior is retained. Public root-page access and real generation in both modes have been verified; this smoke test does not replace the original experiment.
 
 For a new checkout:
 
